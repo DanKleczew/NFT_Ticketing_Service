@@ -438,14 +438,19 @@ function TicketsPage({ events, payments, currentClient, clients, onProfile }) {
 function AdminPage({ events, onCreateEvent, onCreateCategory, apiBase }) {
   const [eventForm, setEventForm] = useState({ name: "", description: "", date: "", banner: "rose" });
   const [categoryForm, setCategoryForm] = useState({ eventId: "", title: "", description: "", price: 15, capacity: 100 });
+  const [eventLog, setEventLog] = useState(null);
   const [busy, setBusy] = useState(false);
 
   async function submitEvent(e) {
     e.preventDefault();
+    setEventLog({ type: "pending", text: `Creation de l'evenement "${eventForm.name}" en cours...` });
     setBusy(true);
     try {
       await onCreateEvent(eventForm);
+      setEventLog({ type: "success", text: `Evenement "${eventForm.name}" cree avec succes.` });
       setEventForm({ name: "", description: "", date: "", banner: "rose" });
+    } catch (err) {
+      setEventLog({ type: "error", text: `Creation echouee: ${err.message || "erreur inconnue"}` });
     } finally {
       setBusy(false);
     }
@@ -478,6 +483,11 @@ function AdminPage({ events, onCreateEvent, onCreateCategory, apiBase }) {
           ))}
         </div>
         <button className="btn primary" disabled={busy}>{busy ? "Creation..." : "Create event"}</button>
+        {eventLog && (
+          <div className={`status event-log ${eventLog.type === "error" ? "error" : "success"}`}>
+            {eventLog.text}
+          </div>
+        )}
       </form>
       <form className="panel form-panel" onSubmit={submitCategory}>
         <h2>NEW TICKET CATEGORY</h2>
