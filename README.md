@@ -1,3 +1,7 @@
+# NFT Ticketing Service
+
+## Project by Dan Kleczewski, Tesnime Ben Omrane, Wandrille Ballereau
+
 The project is made of three distinct parts : 
 
 - The blockchain contract (`blockchain` folder)
