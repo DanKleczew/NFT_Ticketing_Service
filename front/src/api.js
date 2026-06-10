@@ -59,9 +59,10 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   getPayments: () => request("/payment"),
-  createPayment: ({ amount, clientId, eventId }) => {
+  createPayment: ({ amount, clientId, eventId, ticketsNumber }) => {
     const params = new URLSearchParams({
       amount: String(amount),
+      tickets_number: String(ticketsNumber),
       client_id: String(clientId),
       event_id: String(eventId),
     });

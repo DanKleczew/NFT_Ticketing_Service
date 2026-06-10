@@ -179,7 +179,8 @@ function App() {
   async function handleCheckout({ eventId, cart, client }) {
     const buyer = await ensureClient(client);
     const total = Object.values(cart).reduce((sum, line) => sum + line.quantity * line.category.price, 0);
-    await api.createPayment({ amount: total, clientId: buyer.id, eventId });
+    const ticketsNumber = Object.values(cart).reduce((sum, line) => sum + line.quantity, 0);
+    await api.createPayment({ amount: total, ticketsNumber, clientId: buyer.id, eventId });
     await refresh();
     setNotice("Paiement confirme. Vos tickets sont disponibles.");
     setView("tickets");
@@ -319,10 +320,12 @@ function EventPage({ event, payments, currentClient, onCheckout }) {
     wallet_public_key: currentClient?.wallet_public_key || "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [checkoutLog, setCheckoutLog] = useState(null);
   const totals = cartTotals(cart);
 
   useEffect(() => {
     setCart({});
+    setCheckoutLog(null);
   }, [event.id]);
 
   function updateQuantity(category, delta) {
@@ -337,9 +340,16 @@ function EventPage({ event, payments, currentClient, onCheckout }) {
   }
 
   async function submit() {
+    setCheckoutLog({
+      type: "pending",
+      text: `Validation de ${totals.quantity} ticket${totals.quantity > 1 ? "s" : ""} pour ${ethFromEuros(totals.amount)} ETH...`,
+    });
     setSubmitting(true);
     try {
       await onCheckout({ eventId: event.id, cart, client });
+      setCheckoutLog({ type: "success", text: "Paiement confirme. Mint des tickets demande au back." });
+    } catch (err) {
+      setCheckoutLog({ type: "error", text: `Achat echoue: ${err.message || "erreur inconnue"}` });
     } finally {
       setSubmitting(false);
     }
@@ -406,6 +416,11 @@ function EventPage({ event, payments, currentClient, onCheckout }) {
           <button className="btn full" onClick={submit} disabled={submitting}>
             {submitting ? "Validation..." : checkoutMode === "card" ? "Simulate card payment" : "Confirm wallet payment"}
           </button>
+          {checkoutLog && (
+            <div className={`status checkout-log ${checkoutLog.type === "error" ? "error" : "success"}`}>
+              {checkoutLog.text}
+            </div>
+          )}
         </div>
       )}
     </section>
