@@ -10,30 +10,6 @@ from sqlalchemy.orm import Session
 
 app = FastAPI()
 
-<<<<<<< HEAD
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://127.0.0.1:5173",
-        "http://localhost:5173",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str | None = None):
-    return {"item_id": item_id, "q": q}
-
-
-=======
->>>>>>> 7194638 (.env et début interface ethereum)
 # Events
 @app.post("/event")
 def create_event(create_data: EventCreate, db_session: Session = Depends(get_db_session)):
@@ -104,10 +80,3 @@ def make_euro_payment(amount: int, tickets_number: int, client_id: int, event_id
 def get_all_euro_payments(db_session: Session = Depends(get_db_session)):
     return db_session.query(EuroPayment).all()
 
-<<<<<<< HEAD
-def do_mint():
-    pass
-=======
-
-
->>>>>>> 7194638 (.env et début interface ethereum)
