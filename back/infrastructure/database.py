@@ -15,6 +15,7 @@ class Event(Base):
     __tablename__ = "events"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, index=True)
+    public_contract_address = Column(String)
     description = Column(String)
 
 class Client(Base):
@@ -30,6 +31,7 @@ class EuroPayment(Base):
     amount = Column(Integer)
     client_id = Column(Integer)
     event_id = Column(Integer)
+    tickets_number = Column(Integer)
     ForeignKeyConstraint(
         ["client_id", "event_id"], ["clients.id", "events.id"]
     )

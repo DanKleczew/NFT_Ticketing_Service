@@ -2,6 +2,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from infrastructure.ethereum_interface import create_contract, mint
 from domain.Client import ClientCreate
 from domain.Event import EventCreate
 from infrastructure.database import EuroPayment, Event, Client, get_db_session
@@ -9,6 +10,7 @@ from sqlalchemy.orm import Session
 
 app = FastAPI()
 
+<<<<<<< HEAD
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -30,10 +32,14 @@ def read_item(item_id: int, q: str | None = None):
     return {"item_id": item_id, "q": q}
 
 
+=======
+>>>>>>> 7194638 (.env et début interface ethereum)
 # Events
 @app.post("/event")
 def create_event(create_data: EventCreate, db_session: Session = Depends(get_db_session)):
-    db_event = Event(**create_data.model_dump())
+    public_contract_address:str = create_contract(create_data.name, create_data.max_supply, create_data.ticket_price_in_eth)
+
+    db_event = Event(name=create_data.name, public_contract_address=public_contract_address, description=create_data.description)
     db_session.add(db_event)
     db_session.commit()
 
@@ -73,7 +79,7 @@ def get_client_by_id(client_id: int, db_session: Session = Depends(get_db_sessio
 
 # Payments
 @app.post("/payment")
-def make_euro_payment(amount: int, client_id: int, event_id: int, db_session: Session = Depends(get_db_session)):
+def make_euro_payment(amount: int, tickets_number: int, client_id: int, event_id: int, db_session: Session = Depends(get_db_session)):
 
     if amount <= 0:
         return JSONResponse(f"Cannot make payment with negative or null amount : {amount}", status_code=400)
@@ -86,9 +92,9 @@ def make_euro_payment(amount: int, client_id: int, event_id: int, db_session: Se
     if db_event is None:
         return JSONResponse(f"Event with id {db_event} does not exist", status_code=404)
     
-    do_mint()
+    mint(db_event.public_contract_address, tickets_number, db_client.wallet_public_key)
 
-    new_payment: EuroPayment = EuroPayment(amount=amount, client_id=client_id, event_id=event_id)
+    new_payment: EuroPayment = EuroPayment(amount=amount, client_id=client_id, event_id=event_id, tickets_number=tickets_number)
     db_session.add(new_payment)
     db_session.commit()
 
@@ -98,5 +104,10 @@ def make_euro_payment(amount: int, client_id: int, event_id: int, db_session: Se
 def get_all_euro_payments(db_session: Session = Depends(get_db_session)):
     return db_session.query(EuroPayment).all()
 
+<<<<<<< HEAD
 def do_mint():
     pass
+=======
+
+
+>>>>>>> 7194638 (.env et début interface ethereum)
