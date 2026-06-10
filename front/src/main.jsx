@@ -28,7 +28,24 @@ const DEFAULT_CATEGORY = {
   capacity: 100,
 };
 
+const DEFAULT_EVENT_FORM = {
+  name: "",
+  description: "",
+  max_supply: 100,
+  ticket_price_in_eth: "0.01",
+  date: "",
+  banner: "rose",
+};
+
 const bannerThemes = ["rose", "ink", "amber", "mint", "blue"];
+
+function ethToWeiString(value) {
+  const normalized = String(value || "0").trim().replace(",", ".");
+  const [whole = "0", fraction = ""] = normalized.split(".");
+  const safeWhole = whole.replace(/\D/g, "") || "0";
+  const safeFraction = fraction.replace(/\D/g, "").slice(0, 18).padEnd(18, "0");
+  return (BigInt(safeWhole) * 10n ** 18n + BigInt(safeFraction || "0")).toString();
+}
 
 function App() {
   const [view, setView] = useState("events");
@@ -115,6 +132,9 @@ function App() {
     await api.createEvent({
       name: payload.name,
       description: payload.description,
+      public_contract_id: `front-auto-${Date.now()}`,
+      max_supply: Number(payload.max_supply),
+      ticket_price_in_eth: ethToWeiString(payload.ticket_price_in_eth),
     });
     const nextEvents = await api.getEvents();
     setEvents(nextEvents || []);
@@ -436,7 +456,7 @@ function TicketsPage({ events, payments, currentClient, clients, onProfile }) {
 }
 
 function AdminPage({ events, onCreateEvent, onCreateCategory, apiBase }) {
-  const [eventForm, setEventForm] = useState({ name: "", description: "", date: "", banner: "rose" });
+  const [eventForm, setEventForm] = useState(DEFAULT_EVENT_FORM);
   const [categoryForm, setCategoryForm] = useState({ eventId: "", title: "", description: "", price: 15, capacity: 100 });
   const [eventLog, setEventLog] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -448,7 +468,7 @@ function AdminPage({ events, onCreateEvent, onCreateCategory, apiBase }) {
     try {
       await onCreateEvent(eventForm);
       setEventLog({ type: "success", text: `Evenement "${eventForm.name}" cree avec succes.` });
-      setEventForm({ name: "", description: "", date: "", banner: "rose" });
+      setEventForm(DEFAULT_EVENT_FORM);
     } catch (err) {
       setEventLog({ type: "error", text: `Creation echouee: ${err.message || "erreur inconnue"}` });
     } finally {
@@ -470,6 +490,10 @@ function AdminPage({ events, onCreateEvent, onCreateCategory, apiBase }) {
         <h2>NEW EVENT</h2>
         <input required placeholder="Title" value={eventForm.name} onChange={(e) => setEventForm({ ...eventForm, name: e.target.value })} />
         <textarea required placeholder="Description" value={eventForm.description} onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })} />
+        <div className="buyer-grid">
+          <input required type="number" min="1" placeholder="Max supply" value={eventForm.max_supply} onChange={(e) => setEventForm({ ...eventForm, max_supply: e.target.value })} />
+          <input required type="number" min="0" step="0.001" placeholder="Ticket price in ETH" value={eventForm.ticket_price_in_eth} onChange={(e) => setEventForm({ ...eventForm, ticket_price_in_eth: e.target.value })} />
+        </div>
         <input type="datetime-local" value={eventForm.date} onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })} />
         <div className="swatches">
           {bannerThemes.map((theme) => (
