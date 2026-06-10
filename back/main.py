@@ -1,4 +1,5 @@
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from domain.Client import ClientCreate
@@ -7,6 +8,17 @@ from infrastructure.database import EuroPayment, Event, Client, get_db_session
 from sqlalchemy.orm import Session
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def read_root():
@@ -88,4 +100,3 @@ def get_all_euro_payments(db_session: Session = Depends(get_db_session)):
 
 def do_mint():
     pass
-
