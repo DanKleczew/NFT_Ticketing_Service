@@ -1,12 +1,12 @@
 import json
-
+from pathlib import Path
 from web3 import Web3
 
 from infrastructure.config import CONFIG
 
 
 # Common
-with open("Ticket.json") as fjson:
+with open(Path(__file__).parent / "Ticket.json") as fjson:
         artifact = json.load(fjson)
         
 ABI = artifact["abi"]
@@ -17,7 +17,6 @@ BYTECODE = artifact["bytecode"]["object"]
 # ***
 def create_contract(name: str, max_supply: int, ticket_price_in_eth: int) -> str:
     w3 = Web3(Web3.HTTPProvider(CONFIG.rpc_url))
-
     if not w3.is_connected():
         raise Exception("Impossible de se connecter au noeud Ethereum")
     
