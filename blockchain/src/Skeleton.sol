@@ -52,7 +52,10 @@ contract Ticket is ERC721URIStorage, ERC721Enumerable, Ownable {
      *  - then delegate the minting to `_mintBatch`.
      */
     function buy(uint256 quantity) external payable returns (uint256[] memory) {
-        // TODO: implement
+        if (msg.value != quantity * price) {
+            revert("Incorrect ETH amount");
+        }
+        return _mintBatch(msg.sender, quantity);
     }
 
     /**
@@ -65,9 +68,10 @@ contract Ticket is ERC721URIStorage, ERC721Enumerable, Ownable {
      */
     function mint(address to, uint256 quantity)
         external
+        onlyOwner
         returns (uint256[] memory)
     {
-        // TODO: implement (and add the missing modifier to the signature)
+        return _mintBatch(to, quantity);
     }
 
     /**
@@ -90,8 +94,13 @@ contract Ticket is ERC721URIStorage, ERC721Enumerable, Ownable {
         if (_nextTokenId + quantity > maxSupply) {
             revert("Sold out");
         }
-
-        
+        uint256[] memory tokenIds = new uint256[](quantity); // tableau des ids mintés
+        for (uint256 i = 0; i < quantity; i++) {
+            uint256 tokenId = _nextTokenId;
+            _safeMint(to, tokenId);
+            _setTokenURI(tokenId, ticketURI);
+            tokenIds[i] = tokenId;
+            _nextTokenId++;
         
         }
 
@@ -104,7 +113,10 @@ contract Ticket is ERC721URIStorage, ERC721Enumerable, Ownable {
      * Hint: use a low-level `call{value: …}("") or transfer`.
      */
     function withdraw() external onlyOwner {
-        // TODO: implement
+        (bool success, ) = payable(owner()).call{value: address(this).balance}("");
+        if (!success) {
+            revert("Withdraw failed");
+        }
     }
 
     /**
@@ -115,7 +127,11 @@ contract Ticket is ERC721URIStorage, ERC721Enumerable, Ownable {
      * `tokenOfOwnerByIndex(account, i)`.
      */
     function ticketsOf(address account) external view returns (uint256[] memory) {
-        // TODO: implement
+        uint256[] memory tokenIds = new uint256[](balanceOf(account));
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            tokenIds[i] = tokenOfOwnerByIndex(account, i);
+        }
+        return tokenIds;
     }
 
     // ------------------------------------------------------------------
