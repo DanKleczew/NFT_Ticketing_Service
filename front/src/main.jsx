@@ -47,6 +47,12 @@ function ethToWeiString(value) {
   return (BigInt(safeWhole) * 10n ** 18n + BigInt(safeFraction || "0")).toString();
 }
 
+function eurosFromEth(value) {
+  const eth = Number(String(value || "0").replace(",", "."));
+  if (!Number.isFinite(eth) || eth < 0) return DEFAULT_CATEGORY.price;
+  return Number((eth * 1500).toFixed(2));
+}
+
 function App() {
   const [view, setView] = useState("events");
   const [selectedEventId, setSelectedEventId] = useState(null);
@@ -149,7 +155,7 @@ function App() {
       };
       const nextCategories = {
         ...categories,
-        [created.id]: categories[created.id] || [{ ...DEFAULT_CATEGORY }],
+        [created.id]: [{ ...DEFAULT_CATEGORY, price: eurosFromEth(payload.ticket_price_in_eth) }],
       };
       persistMeta(nextMeta);
       persistCategories(nextCategories);
@@ -542,7 +548,7 @@ function AdminPage({ events, onCreateEvent, onCreateCategory, apiBase }) {
         <input required placeholder="Title (e.g. VIP)" value={categoryForm.title} onChange={(e) => setCategoryForm({ ...categoryForm, title: e.target.value })} />
         <textarea placeholder="Description" value={categoryForm.description} onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })} />
         <div className="buyer-grid">
-          <input type="number" min="1" placeholder="Price EUR" value={categoryForm.price} onChange={(e) => setCategoryForm({ ...categoryForm, price: e.target.value })} />
+          <input type="number" min="1" placeholder="Price EUR (local UX)" value={categoryForm.price} onChange={(e) => setCategoryForm({ ...categoryForm, price: e.target.value })} />
           <input type="number" min="1" placeholder="Capacity" value={categoryForm.capacity} onChange={(e) => setCategoryForm({ ...categoryForm, capacity: e.target.value })} />
         </div>
         <button className="btn primary">Create category</button>
