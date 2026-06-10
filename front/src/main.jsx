@@ -372,7 +372,9 @@ function EventPage({ event, payments, currentClient, onCheckout }) {
           </div>
         </div>
         {eventCategories.map((category) => {
-          const sold = payments.filter((payment) => payment.event_id === event.id).length;
+          const sold = payments
+            .filter((payment) => payment.event_id === event.id)
+            .reduce((sum, payment) => sum + Number(payment.tickets_number || 1), 0);
           const left = Math.max(0, Number(category.capacity || 0) - sold);
           return (
             <div className="ticket-row" key={category.id}>
